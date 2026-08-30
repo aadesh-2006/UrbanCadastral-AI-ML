@@ -25,6 +25,15 @@ export const App: React.FC = () => {
 
   // Track whether initial preset has been loaded so we never overwrite user selection
   const initializedRef = useRef(false);
+  // Guard against stale inference responses after reset / new image
+  const activeRequestIdRef = useRef<number>(0);
+  // Track stage animation timeouts so they can be properly cancelled on finish or reset
+  const stageTimeoutsRef = useRef<number[]>([]);
+
+  const clearStageTimeouts = () => {
+    stageTimeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    stageTimeoutsRef.current = [];
+  };
 
   // Health check heartbeat (every 10s) - ONLY checks connectivity, NEVER resets selection
   useEffect(() => {
@@ -118,10 +127,23 @@ export const App: React.FC = () => {
       georeferenced: isTiff,
       crs: isTiff ? "Embedded Affine/WGS84" : "None"
     });
+
+    // Immediate dimension scan for standard web images
+    if (!isTiff) {
+      const img = new Image();
+      img.onload = () => {
+        setCurrentImageInfo((prev) =>
+          prev ? { ...prev, dimensions: `${img.naturalWidth} x ${img.naturalHeight}` } : null
+        );
+      };
+      img.src = objectUrl;
+    }
   };
 
   // Execute LightUNet inference
   const handleRunInference = async () => {
+    const requestId = ++activeRequestIdRef.current;
+    clearStageTimeouts();
     setProcessingStage("preprocessing");
     setSelectedBuilding(null);
 
@@ -133,10 +155,26 @@ export const App: React.FC = () => {
       : (activePreset?.format || "Standard Image");
 
     try {
-      setTimeout(() => setProcessingStage("segmentation"), 350);
-      setTimeout(() => setProcessingStage("cleanup"), 800);
-      setTimeout(() => setProcessingStage("polygonization"), 1200);
-      setTimeout(() => setProcessingStage("geojson"), 1500);
+      stageTimeoutsRef.current.push(
+        window.setTimeout(() => {
+          if (requestId === activeRequestIdRef.current) setProcessingStage("segmentation");
+        }, 350)
+      );
+      stageTimeoutsRef.current.push(
+        window.setTimeout(() => {
+          if (requestId === activeRequestIdRef.current) setProcessingStage("cleanup");
+        }, 800)
+      );
+      stageTimeoutsRef.current.push(
+        window.setTimeout(() => {
+          if (requestId === activeRequestIdRef.current) setProcessingStage("polygonization");
+        }, 1200)
+      );
+      stageTimeoutsRef.current.push(
+        window.setTimeout(() => {
+          if (requestId === activeRequestIdRef.current) setProcessingStage("geojson");
+        }, 1500)
+      );
 
       let url = "/api/inference";
       const options: RequestInit = { method: "POST" };
@@ -152,12 +190,17 @@ export const App: React.FC = () => {
       }
 
       const res = await fetch(url, options);
+      if (requestId !== activeRequestIdRef.current) return;
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.detail || "Inference execution failed");
+        throw new Error(errorData.detail || `Server error (${res.status}): Inference failed`);
       }
 
       const data: InferenceResult = await res.json();
+      if (requestId !== activeRequestIdRef.current) return;
+
+      clearStageTimeouts();
       setResult(data);
       setPreviewUrl(data.preview_url);
       setViewMode("overlay");
@@ -173,6 +216,8 @@ export const App: React.FC = () => {
       });
 
     } catch (err: any) {
+      clearStageTimeouts();
+      if (requestId !== activeRequestIdRef.current) return;
       console.error(err);
       setProcessingStage("error");
       alert(`Inference failed: ${err.message || "Unknown error"}`);
@@ -195,15 +240,23 @@ export const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // Explicit user reset
-  const handleReset = () => {
+  // Explicit user new image / clear selection
+  const handleNewImage = () => {
+    // Invalidate in-flight inference requests and pending stage timeouts
+    activeRequestIdRef.current++;
+    clearStageTimeouts();
+    setProcessingStage("idle");
+
+    // Clear current custom file and selection
     setSelectedFile(null);
+    setSelectedPresetId(null);
+    setPreviewUrl(null);
+    setCurrentImageInfo(null);
+
+    // Clear all inference results, polygons, and inspector state
     setResult(null);
     setSelectedBuilding(null);
     setViewMode("raw");
-    if (presets.length > 0) {
-      handleSelectPreset(presets[0].id);
-    }
   };
 
   return (
@@ -222,7 +275,7 @@ export const App: React.FC = () => {
           result={result}
           selectedBuilding={selectedBuilding}
           onDownloadGeoJSON={handleDownloadGeoJSON}
-          onReset={handleReset}
+          onNewImage={handleNewImage}
         />
         <Workspace
           previewUrl={previewUrl}

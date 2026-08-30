@@ -9,12 +9,18 @@ Hardware Safety:
 
 import os
 import sys
+import re
+import time
 import json
 import shutil
+import logging
+import traceback
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+
+logger = logging.getLogger("uvicorn.error")
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, PROJECT_ROOT)
@@ -124,44 +130,56 @@ async def run_inference(
     if engine is None:
         engine = AerialInferenceEngine(num_threads=4)
 
+    os.makedirs(UPLOADS_DIR, exist_ok=True)
+    os.makedirs(INFERENCE_OUTPUT_DIR, exist_ok=True)
+
     target_image_path = None
     gt_mask_path = None
 
-    # Handle preset selection
-    if preset_id:
-        if preset_id == "tile_127":
-            target_image_path = os.path.join(RAW_IMAGES_DIR, "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif")
-            gt_mask_path = os.path.join(MASKS_DIR, "mask_img127.png")
-        elif preset_id == "tile_1006":
-            target_image_path = os.path.join(RAW_IMAGES_DIR, "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img1006.tif")
-            gt_mask_path = os.path.join(MASKS_DIR, "mask_img1006.png")
-        elif preset_id == "plain_jpg":
-            target_image_path = os.path.join(INFERENCE_OUTPUT_DIR, "test_plain_aerial.jpg")
-            if not os.path.exists(target_image_path):
-                tile127_p = os.path.join(RAW_IMAGES_DIR, "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif")
-                rgb, _, _, _, _, _ = engine.load_image(tile127_p)
-                import cv2
-                cv2.imwrite(target_image_path, cv2.cvtColor((rgb * 255).astype("uint8"), cv2.COLOR_RGB2BGR))
-        elif preset_id == "external_drone":
-            target_image_path = os.path.join(UPLOADS_DIR, "external_drone_rettern_crop650.jpg")
-        else:
-            raise HTTPException(status_code=400, detail=f"Unknown preset ID: {preset_id}")
-    elif file:
-        ext = os.path.splitext(file.filename)[1].lower()
-        if ext not in [".tif", ".tiff", ".jpg", ".jpeg", ".png", ".webp"]:
-            raise HTTPException(status_code=400, detail=f"Unsupported format '{ext}'. Must be GeoTIFF, JPG, or PNG.")
-
-        save_path = os.path.join(UPLOADS_DIR, file.filename)
-        with open(save_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        target_image_path = save_path
-    else:
-        raise HTTPException(status_code=400, detail="Must provide either an uploaded file or preset_id.")
-
-    if not os.path.exists(target_image_path):
-        raise HTTPException(status_code=404, detail="Target image file not found.")
-
     try:
+        # Handle preset selection
+        if preset_id:
+            if preset_id == "tile_127":
+                target_image_path = os.path.join(RAW_IMAGES_DIR, "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif")
+                gt_mask_path = os.path.join(MASKS_DIR, "mask_img127.png")
+            elif preset_id == "tile_1006":
+                target_image_path = os.path.join(RAW_IMAGES_DIR, "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img1006.tif")
+                gt_mask_path = os.path.join(MASKS_DIR, "mask_img1006.png")
+            elif preset_id == "plain_jpg":
+                target_image_path = os.path.join(INFERENCE_OUTPUT_DIR, "test_plain_aerial.jpg")
+                if not os.path.exists(target_image_path):
+                    tile127_p = os.path.join(RAW_IMAGES_DIR, "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif")
+                    rgb, _, _, _, _, _ = engine.load_image(tile127_p)
+                    import cv2
+                    cv2.imwrite(target_image_path, cv2.cvtColor((rgb * 255).astype("uint8"), cv2.COLOR_RGB2BGR))
+            elif preset_id == "external_drone":
+                target_image_path = os.path.join(UPLOADS_DIR, "external_drone_rettern_crop650.jpg")
+            else:
+                raise HTTPException(status_code=400, detail=f"Unknown preset ID: {preset_id}")
+
+        elif file:
+            filename = file.filename or "uploaded_image.jpg"
+            ext = os.path.splitext(filename)[1].lower()
+            if ext not in [".tif", ".tiff", ".jpg", ".jpeg", ".png", ".webp"]:
+                raise HTTPException(status_code=400, detail=f"Unsupported format '{ext}'. Must be GeoTIFF, JPG, or PNG.")
+
+            # Sanitize filename and clamp length to prevent Windows MAX_PATH (260 chars) overflow
+            raw_base = os.path.splitext(os.path.basename(filename))[0]
+            clean_base = re.sub(r"[^a-zA-Z0-9_\-]", "_", raw_base)
+            clean_base = clean_base[:32].strip("_") or "uploaded"
+            timestamp = int(time.time() * 1000)
+            safe_filename = f"{clean_base}_{timestamp}{ext}"
+
+            save_path = os.path.join(UPLOADS_DIR, safe_filename)
+            with open(save_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            target_image_path = save_path
+        else:
+            raise HTTPException(status_code=400, detail="Must provide either an uploaded file or preset_id.")
+
+        if not os.path.exists(target_image_path):
+            raise HTTPException(status_code=404, detail="Target image file not found.")
+
         # Run real LightUNet inference
         result = engine.run(
             image_path=target_image_path,
@@ -185,7 +203,10 @@ async def run_inference(
 
         return result
 
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Inference execution failed: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
 
 if __name__ == "__main__":

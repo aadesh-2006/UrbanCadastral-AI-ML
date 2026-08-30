@@ -112,7 +112,7 @@ export const Workspace: React.FC<WorkspaceProps> = ({
               !result
                 ? "text-slate-600 cursor-not-allowed"
                 : viewMode === "mask"
-                ? "bg-slate-800 text-slate-100 shadow-sm"
+                ? "bg-rose-950/80 text-rose-300 border border-rose-700/50 shadow-sm"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -133,35 +133,48 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           </button>
         </div>
 
-        {/* Overlay Opacity & Label Controls */}
-        {result && viewMode === "overlay" && (
+        {/* Overlay & Mask Controls */}
+        {result && (viewMode === "overlay" || viewMode === "mask") && (
           <div className="flex items-center gap-3 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800 text-xs">
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <Sliders className="h-3.5 w-3.5" />
-              <span className="text-[11px]">Opacity:</span>
-              <input
-                type="range"
-                min="0.2"
-                max="1"
-                step="0.05"
-                value={opacity}
-                onChange={(e) => setOpacity(parseFloat(e.target.value))}
-                className="w-16 accent-emerald-500 h-1.5 rounded-lg cursor-pointer"
-              />
-              <span className="font-mono text-[10px] w-7 text-slate-300">
-                {Math.round(opacity * 100)}%
-              </span>
-            </div>
+            {viewMode === "overlay" && (
+              <div className="flex items-center gap-1.5 text-slate-400">
+                <Sliders className="h-3.5 w-3.5" />
+                <span className="text-[11px]">Opacity:</span>
+                <input
+                  type="range"
+                  min="0.2"
+                  max="1"
+                  step="0.05"
+                  value={opacity}
+                  onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                  className="w-16 accent-emerald-500 h-1.5 rounded-lg cursor-pointer"
+                />
+                <span className="font-mono text-[10px] w-7 text-slate-300">
+                  {Math.round(opacity * 100)}%
+                </span>
+              </div>
+            )}
+
+            {viewMode === "mask" && (
+              <div className="flex items-center gap-1.5 text-slate-400">
+                <Layers className="h-3.5 w-3.5 text-rose-400" />
+                <span className="text-[11px] font-medium text-slate-300">Semantic Cadastral View</span>
+              </div>
+            )}
 
             <button
               onClick={() => setShowLabels(!showLabels)}
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium transition-colors ${
-                showLabels ? "text-emerald-400 bg-emerald-950/50" : "text-slate-500 hover:text-slate-300"
+                showLabels
+                  ? viewMode === "mask"
+                    ? "text-rose-400 bg-rose-950/50"
+                    : "text-emerald-400 bg-emerald-950/50"
+                  : "text-slate-500 hover:text-slate-300"
               }`}
-              title="Toggle Confidence Labels"
+              title="Toggle Footprint Labels"
             >
               <Tag className="h-3 w-3" />
-              <span>Labels</span>
+              <span>{viewMode === "mask" ? "Footprint IDs" : "Labels"}</span>
             </button>
           </div>
         )}
@@ -212,6 +225,23 @@ export const Workspace: React.FC<WorkspaceProps> = ({
         </div>
       </div>
 
+      {/* Hidden SVG Filter Definition for GIS Cadastral Semantic Mask Colorization */}
+      <svg className="absolute w-0 h-0 pointer-events-none opacity-0 overflow-hidden" aria-hidden="true">
+        <defs>
+          <filter id="gis-cadastral-mask" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="
+                0.92 0 0 0 0.04
+                0.20 0 0 0 0.05
+                0.34 0 0 0 0.08
+                0    0 0 1 0
+              "
+            />
+          </filter>
+        </defs>
+      </svg>
+
       {/* Main Viewport Container */}
       <div
         ref={containerRef}
@@ -234,13 +264,16 @@ export const Workspace: React.FC<WorkspaceProps> = ({
             <img
               src={currentSrc}
               alt="Aerial Ingestion View"
-              style={{ opacity: viewMode === "overlay" ? opacity : 1.0 }}
+              style={{
+                opacity: viewMode === "overlay" ? opacity : 1.0,
+                filter: viewMode === "mask" ? "url(#gis-cadastral-mask)" : "none"
+              }}
               className="max-h-[75vh] w-auto object-contain rounded-lg pointer-events-none transition-opacity duration-150"
               draggable={false}
             />
 
-            {/* Interactive SVG Polygons Layer */}
-            {result?.polygons_pixel && viewMode === "overlay" && (
+            {/* Interactive SVG Polygons Layer (Active in both Overlay and Semantic Mask Views) */}
+            {result?.polygons_pixel && (viewMode === "overlay" || viewMode === "mask") && (
               <svg
                 viewBox={`0 0 ${imgWidth} ${imgHeight}`}
                 className="absolute inset-0 w-full h-full pointer-events-auto"
@@ -250,9 +283,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                   const isSelected = selectedBuilding?.id === poly.id;
                   const ptsString = poly.points.map((pt) => `${pt[0]},${pt[1]}`).join(" ");
 
-                  // Calculate approximate center for label
+                  // Calculate center for label
                   const avgX = poly.points.reduce((acc, p) => acc + p[0], 0) / poly.points.length;
                   const avgY = poly.points.reduce((acc, p) => acc + p[1], 0) / poly.points.length;
+
+                  const isMaskMode = viewMode === "mask";
+                  const defaultFill = isMaskMode ? "rgba(244, 63, 94, 0.45)" : "transparent";
+                  const defaultStroke = isMaskMode ? "#fb7185" : "transparent";
+                  const strokeWidth = isSelected ? 2.5 : (isMaskMode ? 1.5 : 1.5);
 
                   return (
                     <g key={poly.id} className="cursor-pointer group">
@@ -268,10 +306,14 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                           };
                           onSelectBuilding(feat);
                         }}
-                        fill={isSelected ? "rgba(6, 182, 212, 0.45)" : "transparent"}
-                        stroke={isSelected ? "#38bdf8" : "transparent"}
-                        strokeWidth={isSelected ? 3 : 1.5}
-                        className="transition-all hover:fill-cyan-500/30 hover:stroke-cyan-400"
+                        fill={isSelected ? "rgba(6, 182, 212, 0.55)" : defaultFill}
+                        stroke={isSelected ? "#38bdf8" : defaultStroke}
+                        strokeWidth={strokeWidth}
+                        className={`transition-all ${
+                          isMaskMode
+                            ? "hover:fill-rose-500/70 hover:stroke-rose-200"
+                            : "hover:fill-cyan-500/30 hover:stroke-cyan-400"
+                        }`}
                       />
                       {showLabels && (
                         <text
@@ -280,11 +322,11 @@ export const Workspace: React.FC<WorkspaceProps> = ({
                           textAnchor="middle"
                           dominantBaseline="central"
                           fill={isSelected ? "#38bdf8" : "#ffffff"}
-                          fontSize="11"
+                          fontSize={isMaskMode ? "10" : "11"}
                           fontWeight="bold"
                           className="pointer-events-none drop-shadow-md select-none font-mono"
                         >
-                          {Math.round(poly.confidence * 100)}%
+                          {isMaskMode ? poly.id.replace("BLD-", "#") : `${Math.round(poly.confidence * 100)}%`}
                         </text>
                       )}
                     </g>
@@ -317,6 +359,45 @@ export const Workspace: React.FC<WorkspaceProps> = ({
           <div className="absolute bottom-4 left-6 z-10 bg-slate-900/90 border border-emerald-500/40 px-3 py-1.5 rounded-lg text-xs text-emerald-300 flex items-center gap-2 shadow-lg">
             <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Georeferenced SpaceNet imagery (EPSG:4326). Geospatial affine transform preserved.</span>
+          </div>
+        )}
+
+        {/* GIS Semantic Cadastral Legend for Mask Mode */}
+        {result && viewMode === "mask" && (
+          <div className="absolute bottom-4 right-6 z-10 bg-slate-900/95 backdrop-blur-md border border-slate-800 p-3 rounded-xl shadow-2xl text-xs space-y-2 max-w-[260px] animate-in fade-in select-none">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Layers className="h-3.5 w-3.5 text-rose-400" />
+                <span className="font-semibold text-slate-200 text-[11px] tracking-wide uppercase">
+                  Cadastral Mask Legend
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                LightUNet
+              </span>
+            </div>
+
+            <div className="space-y-1.5 text-[11px]">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-sm bg-rose-500/80 border border-rose-400 flex-shrink-0 shadow-sm shadow-rose-950" />
+                  <span className="text-slate-200 font-medium">Building Footprint</span>
+                </div>
+                <span className="font-mono text-[10px] text-rose-300 font-semibold">{result.building_count} Detected</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 rounded-sm bg-slate-950 border border-slate-800 flex-shrink-0" />
+                  <span className="text-slate-400">Background / Non-Built</span>
+                </div>
+                <span className="font-mono text-[10px] text-slate-500">Unclassified</span>
+              </div>
+            </div>
+
+            <div className="pt-1.5 border-t border-slate-800/60 text-[10px] text-slate-400 flex items-center justify-between font-mono">
+              <span>Class: Building (Binary)</span>
+              <span className="text-emerald-400 font-semibold">{Math.round(result.mean_confidence * 100)}% Conf</span>
+            </div>
           </div>
         )}
       </div>

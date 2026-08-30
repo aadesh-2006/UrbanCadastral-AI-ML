@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   UploadCloud,
   Zap,
@@ -7,7 +7,9 @@ import {
   Download,
   Info,
   Building2,
-  RotateCcw
+  RotateCcw,
+  ArrowLeft,
+  X
 } from "lucide-react";
 import type { InferenceResult, PresetItem, ProcessingStage, GeoJSONFeature } from "../types";
 
@@ -29,7 +31,7 @@ interface SidebarProps {
   result: InferenceResult | null;
   selectedBuilding: GeoJSONFeature | null;
   onDownloadGeoJSON: () => void;
-  onReset: () => void;
+  onNewImage: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -44,8 +46,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   result,
   selectedBuilding,
   onDownloadGeoJSON,
-  onReset
+  onNewImage
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const isProcessing = processingStage !== "idle" && processingStage !== "complete" && processingStage !== "error";
 
   const handleDrop = (e: React.DragEvent) => {
@@ -59,6 +62,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (e.target.files && e.target.files[0]) {
       onFileUpload(e.target.files[0]);
     }
+    // Clear input value so selecting the exact same file fires onChange again
+    e.target.value = "";
+  };
+
+  const handleNewImageClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    onNewImage();
   };
 
   const stages = [
@@ -80,12 +92,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
             {(selectedFile || selectedPresetId || result) && (
               <button
-                onClick={onReset}
-                className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors"
-                title="Reset selection"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleNewImageClick();
+                }}
+                className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
+                title="Reset selection and select another image"
               >
                 <RotateCcw className="h-3 w-3" />
-                <span>Reset</span>
+                <span>New Image</span>
               </button>
             )}
           </div>
@@ -129,15 +146,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               className="border-2 border-dashed border-slate-700/70 hover:border-slate-500 rounded-xl p-3.5 text-center bg-slate-950/40 transition-colors cursor-pointer group"
-              onClick={() => document.getElementById("file-input")?.click()}
+              onClick={() => fileInputRef.current?.click()}
             >
               <input
+                ref={fileInputRef}
                 id="file-input"
                 type="file"
                 accept=".tif,.tiff,.jpg,.jpeg,.png"
                 className="hidden"
                 onChange={handleFileChange}
-                disabled={isProcessing}
               />
               <UploadCloud className="h-6 w-6 mx-auto text-slate-400 group-hover:text-emerald-400 transition-colors mb-1.5" />
               <p className="text-xs text-slate-300 font-medium">
@@ -155,9 +172,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
             <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
               <span className="text-slate-400 font-medium text-[11px]">Selected Image</span>
-              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
-                {currentImageInfo.format}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                  {currentImageInfo.format}
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleNewImageClick();
+                  }}
+                  className="text-[10px] text-slate-400 hover:text-rose-300 flex items-center gap-0.5 px-1 py-0.5 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Clear selected image"
+                >
+                  <X className="h-3 w-3" />
+                  <span>Clear</span>
+                </button>
+              </div>
             </div>
             <div className="font-mono text-slate-200 text-xs truncate" title={currentImageInfo.name}>
               {currentImageInfo.name}
@@ -177,9 +209,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* Primary Action Button */}
-        <div>
+        {/* Primary Action Button & Secondary New Image Action */}
+        <div className="space-y-2">
           <button
+            type="button"
             onClick={onRunInference}
             disabled={!currentImageInfo || isProcessing}
             className={`w-full py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-md ${
@@ -200,6 +233,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </>
             )}
           </button>
+
+          {/* New Image / Reset Action Button - NEVER DISABLED */}
+          {(selectedFile || selectedPresetId || result) && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNewImageClick();
+              }}
+              className="w-full py-2 px-3 rounded-xl border border-slate-700/70 hover:border-slate-500 bg-slate-950/60 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-[0.98] cursor-pointer"
+              title="Clear current selection and choose another image"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 text-slate-400" />
+              <span>{selectedFile ? "← New Image" : "Reset / New Image"}</span>
+            </button>
+          )}
         </div>
 
         {/* Real Processing Stages */}
