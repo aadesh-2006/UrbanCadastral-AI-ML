@@ -39,6 +39,8 @@ ml/outputs/sanity_model.pth
 
 # Large Raw Satellite GeoTIFFs (fetch on demand via scripts/download_subset.py)
 dataset/raw/images/*.tif
+!dataset/raw/images/SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif
+!dataset/raw/images/SN2_buildings_train_AOI_2_Vegas_PS-RGB_img1006.tif
 
 # IDE & Editors
 .vscode/

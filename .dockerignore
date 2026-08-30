@@ -1,0 +1,17 @@
+.git
+.gitignore
+.dockerignore
+README.md
+frontend/node_modules
+frontend/dist
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+env/
+venv/
+dataset/raw/images/*.tif
+!dataset/raw/images/SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif
+!dataset/raw/images/SN2_buildings_train_AOI_2_Vegas_PS-RGB_img1006.tif

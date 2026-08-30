@@ -48,6 +48,7 @@ INFERENCE_OUTPUT_DIR = os.path.join(OUTPUTS_DIR, "inference")
 UPLOADS_DIR = os.path.join(PROJECT_ROOT, "dataset", "uploads")
 RAW_IMAGES_DIR = os.path.join(PROJECT_ROOT, "dataset", "raw", "images")
 MASKS_DIR = os.path.join(PROJECT_ROOT, "dataset", "masks")
+FRONTEND_DIST_DIR = os.path.join(PROJECT_ROOT, "frontend", "dist")
 
 os.makedirs(INFERENCE_OUTPUT_DIR, exist_ok=True)
 os.makedirs(UPLOADS_DIR, exist_ok=True)
@@ -209,6 +210,12 @@ async def run_inference(
         logger.error(f"Inference execution failed: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
 
+# Mount compiled frontend distribution if it exists (for unified production serving)
+if os.path.exists(FRONTEND_DIST_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
+    port = int(os.environ.get("PORT", "8000"))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run(app, host=host, port=port, log_level="info")
