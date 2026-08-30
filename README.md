@@ -29,6 +29,20 @@ Trained on Maxar WorldView-3 optical satellite imagery from **SpaceNet 2 (Las Ve
 
 ---
 
+## Visual Pipeline Results
+
+### 1. Satellite Segmentation Benchmark (SpaceNet 2 Vegas — Tile 127)
+> **87.99% Dice | 78.56% IoU | 68.7 ms CPU Inference (4 Threads)**
+
+![SpaceNet 2 Tile 127 Segmentation Diagnostic](ml/outputs/benchmark_best.jpg)
+
+### 2. Real-World UAV Drone Domain-Shift Test (Rettern, Germany)
+> **13 Valid Detected Building Polygons | 78.6% Mean Confidence | 64.5 ms CPU Inference**
+
+![External Drone Orthophoto Domain-Shift Diagnostic](ml/outputs/external_domain_shift_diagnostic.jpg)
+
+---
+
 ## System Architecture
 
 ```
@@ -63,6 +77,9 @@ User Aerial Image (GeoTIFF / JPG / PNG)
 ---
 
 ## Directory Structure
+
+<details>
+<summary>Click to view directory structure</summary>
 
 ```
 UrbanCadastral-AI-ML/
@@ -121,6 +138,8 @@ UrbanCadastral-AI-ML/
 └── README.md
 ```
 
+</details>
+
 ---
 
 ## Quickstart & Installation
@@ -132,7 +151,7 @@ UrbanCadastral-AI-ML/
 ### 2. Python Environment Setup
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/UrbanCadastral-AI-ML.git
+git clone https://github.com/aadesh-2006/UrbanCadastral-AI-ML.git
 cd UrbanCadastral-AI-ML
 
 # Install dependencies
