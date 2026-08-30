@@ -1,0 +1,14 @@
+# UrbanCadastral-AI-ML: Python Dependencies
+# Lightweight CPU-first Deep Learning and Geospatial Inference Pipeline
+
+torch>=2.1.0
+numpy>=1.26.0
+opencv-python>=4.9.0
+rasterio>=1.3.9
+shapely>=2.0.2
+fastapi>=0.110.0
+uvicorn>=0.29.0
+python-multipart>=0.0.9
+psutil>=5.9.8
+pillow>=10.2.0
+requests>=2.31.0

@@ -1,0 +1,95 @@
+{
+  "benchmark_date": "2026-08-30 12:49:34",
+  "model": "LightUNet",
+  "checkpoint": "best_model.pth",
+  "validation_tiles_count": 7,
+  "mean_dice": 0.7654,
+  "std_dice": 0.0707,
+  "mean_iou": 0.6253,
+  "min_dice": 0.6649,
+  "max_dice": 0.8799,
+  "best_tile": "127",
+  "average_tile": "146",
+  "worst_tile": "1006",
+  "average_inference_time_ms": 45.26,
+  "total_benchmark_time_seconds": 0.67,
+  "peak_ram_mb": 380.2,
+  "hardware_profile": {
+    "device": "cpu",
+    "cpu_threads": 4,
+    "concurrency": "sequential",
+    "batch_size": 1
+  },
+  "tiles": [
+    {
+      "tile_id": "127",
+      "dice": 0.8799,
+      "iou": 0.7856,
+      "inference_time_ms": 68.68,
+      "predicted_regions": 16,
+      "predicted_pixels": 15060,
+      "ground_truth_pixels": 12941,
+      "observation": "Dense suburban street with distinct single-family homes; excellent delineation and high Dice."
+    },
+    {
+      "tile_id": "1006",
+      "dice": 0.6649,
+      "iou": 0.4981,
+      "inference_time_ms": 44.16,
+      "predicted_regions": 21,
+      "predicted_pixels": 14634,
+      "ground_truth_pixels": 10343,
+      "observation": "Townhomes and electrical substation utility yard; utility metallic equipment and bright gravel caused false-positive block."
+    },
+    {
+      "tile_id": "14",
+      "dice": 0.7616,
+      "iou": 0.615,
+      "inference_time_ms": 46.89,
+      "predicted_regions": 16,
+      "predicted_pixels": 17416,
+      "ground_truth_pixels": 14513,
+      "observation": "Curving residential tract; accurate roof boundary tracing, minor merging on adjoining eaves."
+    },
+    {
+      "tile_id": "146",
+      "dice": 0.7651,
+      "iou": 0.6196,
+      "inference_time_ms": 39.22,
+      "predicted_regions": 14,
+      "predicted_pixels": 7746,
+      "ground_truth_pixels": 8272,
+      "observation": "Sparse residential with large gravel yards; lower building density, minor false positives on bright driveway borders."
+    },
+    {
+      "tile_id": "113",
+      "dice": 0.8101,
+      "iou": 0.6808,
+      "inference_time_ms": 34.54,
+      "predicted_regions": 27,
+      "predicted_pixels": 25786,
+      "ground_truth_pixels": 20176,
+      "observation": "High-density residential neighborhood; captured majority of houses, some adjacent roofs merged."
+    },
+    {
+      "tile_id": "10",
+      "dice": 0.6737,
+      "iou": 0.5079,
+      "inference_time_ms": 36.52,
+      "predicted_regions": 20,
+      "predicted_pixels": 9669,
+      "ground_truth_pixels": 14619,
+      "observation": "Mixed suburban and apartment complexes; solid footprint detection on large structures."
+    },
+    {
+      "tile_id": "101",
+      "dice": 0.8023,
+      "iou": 0.6699,
+      "inference_time_ms": 46.83,
+      "predicted_regions": 20,
+      "predicted_pixels": 14949,
+      "ground_truth_pixels": 13109,
+      "observation": "Residential tract; good overall localization, slight under-segmentation on low-contrast roofs."
+    }
+  ]
+}

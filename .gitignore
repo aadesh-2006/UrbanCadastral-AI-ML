@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node / Vite Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.local
+
+# Temporary / Scratch uploads
+dataset/uploads/uploaded_aerial*
+
+# Redundant Model Checkpoints (keep best_model.pth tracked)
+ml/outputs/final_model.pth
+ml/outputs/sanity_model.pth
+
+# Large Raw Satellite GeoTIFFs (fetch on demand via scripts/download_subset.py)
+dataset/raw/images/*.tif
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# OS Specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

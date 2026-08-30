@@ -1,0 +1,122 @@
+{
+  "test_name": "Milestone 10: External Image / Domain-Shift Benchmark",
+  "date": "2026-08-30 14:34:34",
+  "model": "LightUNet",
+  "checkpoint": "best_model.pth (Epoch 18, SpaceNet 2 Vegas)",
+  "test_image": {
+    "path": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\dataset\\uploads\\external_drone_rettern_crop650.jpg",
+    "source": "Wikimedia Commons (Rettern Drone Orthophoto, Germany, CC-BY-SA 4.0)",
+    "format": "JPEG",
+    "dimensions": [
+      650,
+      650,
+      3
+    ],
+    "georeferenced": false,
+    "crs": "None (local image pixel coordinates)"
+  },
+  "performance": {
+    "inference_time_ms": 64.51,
+    "total_pipeline_time_ms": 257.0,
+    "ram_usage_mb": 81.54,
+    "cpu_threads": 4
+  },
+  "detections": {
+    "building_count": 13,
+    "mean_confidence": 0.786,
+    "geometry_validity": "13/13",
+    "polygon_summary": [
+      {
+        "id": "BLD-001",
+        "confidence": 0.841,
+        "pixel_area": 927.0,
+        "num_vertices": 8
+      },
+      {
+        "id": "BLD-002",
+        "confidence": 0.881,
+        "pixel_area": 2513.0,
+        "num_vertices": 13
+      },
+      {
+        "id": "BLD-003",
+        "confidence": 0.654,
+        "pixel_area": 131.5,
+        "num_vertices": 6
+      },
+      {
+        "id": "BLD-004",
+        "confidence": 0.706,
+        "pixel_area": 376.5,
+        "num_vertices": 7
+      },
+      {
+        "id": "BLD-005",
+        "confidence": 0.743,
+        "pixel_area": 204.5,
+        "num_vertices": 5
+      },
+      {
+        "id": "BLD-006",
+        "confidence": 0.895,
+        "pixel_area": 17854.5,
+        "num_vertices": 63
+      },
+      {
+        "id": "BLD-007",
+        "confidence": 0.723,
+        "pixel_area": 113.5,
+        "num_vertices": 5
+      },
+      {
+        "id": "BLD-008",
+        "confidence": 0.709,
+        "pixel_area": 134.0,
+        "num_vertices": 5
+      },
+      {
+        "id": "BLD-009",
+        "confidence": 0.743,
+        "pixel_area": 244.5,
+        "num_vertices": 6
+      },
+      {
+        "id": "BLD-010",
+        "confidence": 0.889,
+        "pixel_area": 4340.0,
+        "num_vertices": 14
+      },
+      {
+        "id": "BLD-011",
+        "confidence": 0.753,
+        "pixel_area": 167.5,
+        "num_vertices": 5
+      },
+      {
+        "id": "BLD-012",
+        "confidence": 0.883,
+        "pixel_area": 242423.5,
+        "num_vertices": 379
+      },
+      {
+        "id": "BLD-013",
+        "confidence": 0.794,
+        "pixel_area": 1533.5,
+        "num_vertices": 16
+      }
+    ]
+  },
+  "spacenet_comparison": {
+    "spacenet_val_mean_dice": 0.7654,
+    "spacenet_val_mean_iou": 0.6253,
+    "spacenet_mean_confidence": 0.916,
+    "external_image_ground_truth": "None (unlabeled qualitative assessment only)",
+    "external_mean_confidence": 0.786
+  },
+  "artifacts": {
+    "diagnostic_image": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\external_domain_shift_diagnostic.jpg",
+    "mask_image": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference\\external_drone_rettern_crop650_mask.png",
+    "overlay_image": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference\\external_drone_rettern_crop650_overlay.jpg",
+    "geojson": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference\\external_drone_rettern_crop650_buildings.geojson"
+  }
+}

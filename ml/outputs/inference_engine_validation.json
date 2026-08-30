@@ -1,0 +1,49 @@
+{
+  "test_date": "2026-08-30 12:53:28",
+  "model": "LightUNet",
+  "checkpoint": "best_model.pth",
+  "domain_limitation": "Trained exclusively on SpaceNet 2 Las Vegas 30cm GSD optical satellite imagery. Arbitrary aerial or drone imagery (including VIT-AP) has not been fine-tuned and may exhibit domain shift.",
+  "tests": [
+    {
+      "test_id": "Tile 127 (Baseline Validation)",
+      "image": "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img127.tif",
+      "format": "GeoTIFF",
+      "georeferenced": true,
+      "crs": "EPSG:4326",
+      "building_count": 18,
+      "mean_confidence": 0.916,
+      "inference_time_ms": 95.28,
+      "validation_dice": 0.8692,
+      "validation_iou": 0.7686,
+      "m6_comparison": {
+        "m6_building_count": 16,
+        "m6_dice": 0.8799,
+        "m6_latency_ms": 60.74,
+        "parity_confirmed": false
+      }
+    },
+    {
+      "test_id": "Tile 1006 (Complex Scene Validation)",
+      "image": "SN2_buildings_train_AOI_2_Vegas_PS-RGB_img1006.tif",
+      "format": "GeoTIFF",
+      "georeferenced": true,
+      "crs": "EPSG:4326",
+      "building_count": 21,
+      "mean_confidence": 0.856,
+      "inference_time_ms": 54.93,
+      "validation_dice": 0.6614,
+      "validation_iou": 0.4941
+    },
+    {
+      "test_id": "Standard JPG (Non-Georeferenced)",
+      "image": "test_plain_aerial.jpg",
+      "format": "JPEG",
+      "georeferenced": false,
+      "crs": "None (pixel coordinates)",
+      "building_count": 18,
+      "mean_confidence": 0.921,
+      "inference_time_ms": 37.5,
+      "pixel_coordinates_verified": true
+    }
+  ]
+}

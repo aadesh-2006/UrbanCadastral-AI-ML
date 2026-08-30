@@ -1,0 +1,20 @@
+{
+  "tile_id": "127",
+  "is_unseen_validation_tile": true,
+  "model_checkpoint": "best_model.pth",
+  "inference_latency_ms": 60.74,
+  "ram_mb": 327.9,
+  "cpu_percent": 28.9,
+  "validation_dice": 0.8799,
+  "validation_iou": 0.7856,
+  "detected_building_regions": 16,
+  "generated_polygons_count": 16,
+  "invalid_polygons_count": 0,
+  "crs": "EPSG:4326",
+  "artifacts": {
+    "comparison_visualization": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference_tile127_comparison.jpg",
+    "raw_prediction_mask": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference_tile127_mask.png",
+    "polygon_overlay_visualization": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference_tile127_polygons.jpg",
+    "geojson_export": "C:\\Users\\Aadesh\\.gemini\\antigravity\\scratch\\UrbanCadastral-AI-ML\\ml\\outputs\\inference_tile127_buildings.geojson"
+  }
+}

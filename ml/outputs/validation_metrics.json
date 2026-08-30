@@ -1,0 +1,16 @@
+{
+  "model": "LightUNet",
+  "parameters": 1942577,
+  "train_tiles": 27,
+  "val_tiles": 7,
+  "epochs": 20,
+  "best_epoch": 18,
+  "best_val_dice": 0.7654,
+  "best_val_iou": 0.6253,
+  "best_val_loss": 0.2765,
+  "final_train_loss": 0.1573,
+  "total_time_seconds": 200.73,
+  "mean_cpu_percent": 32.6,
+  "peak_cpu_percent": 37.3,
+  "peak_ram_mb": 467.1
+}

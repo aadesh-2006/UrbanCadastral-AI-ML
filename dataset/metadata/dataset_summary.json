@@ -1,0 +1,13 @@
+{
+  "dataset": "SpaceNet 2 Building Detection (AOI 2 - Las Vegas)",
+  "total_images": 34,
+  "total_labels": 34,
+  "total_masks": 34,
+  "total_polygons": 1009,
+  "valid_polygons": 1009,
+  "invalid_geometries": 0,
+  "average_buildings_per_tile": 29.68,
+  "crs": "EPSG:4326",
+  "resolution": "650x650 px (30cm GSD)",
+  "mask_convention": "0 = background, 255 = building footprint"
+}
